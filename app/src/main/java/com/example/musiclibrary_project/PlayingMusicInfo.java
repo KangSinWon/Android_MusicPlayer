@@ -1,5 +1,6 @@
 package com.example.musiclibrary_project;
 
+// 노래에 대한 정보를 저장하는 클래스
 public class PlayingMusicInfo {
     private int num;
     private String path;

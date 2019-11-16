@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+// External Storage에 접근하기 위해 권한을 요청하는 클래스
 public class PermissionHandler {
     public static boolean isPermissionGranted(Activity mContext, String Permission, String Text, int PermissionCode) {
         if (ContextCompat.checkSelfPermission(mContext, Permission) != PackageManager.PERMISSION_GRANTED) {

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import com.example.musiclibrary_project.MusicPlayerService.MusicBinder;
@@ -23,8 +22,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // final String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getPath();
 
+        // Start 버튼을 누르면 music list 화면으로 넘어감
         final Intent music_library = new Intent(this, MusicLibraryActivity.class);
         Button button_start = findViewById(R.id.button_start);
         button_start.setOnClickListener(new Button.OnClickListener(){
@@ -35,23 +34,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Service 정보를 가져올 때 연결을 해주는 변수
     private ServiceConnection conn = new ServiceConnection() {
         public void onServiceConnected(ComponentName name,
                                        IBinder service) {
-            // 서비스와 연결되었을 때 호출되는 메서드
-            // 서비스 객체를 전역변수로 저장
             MusicBinder mb = (MusicBinder) service;
-            musicService = mb.getService(); // 서비스가 제공하는 메소드 호출하여
+            musicService = mb.getService();
 
-            // 서비스쪽 객체를 전달받을수 있슴
             isMusicService = true;
         }
         public void onServiceDisconnected(ComponentName name) {
-            // 서비스와 연결이 끊겼을 때 호출되는 메서드
             isMusicService = false;
         }
     };
 
+    // 백그라운드에서 재생되고 있는 MusicPlayerService 정보를 가져옴
     @Override
     protected void onStart(){
         super.onStart();

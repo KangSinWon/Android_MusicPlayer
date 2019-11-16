@@ -45,33 +45,31 @@ public class MusicLibraryActivity extends AppCompatActivity {
 
         list = getExternalMusicList();
 
+        // custom item - adapter 생성
         adapter = new MusicListViewAdapter(list);
         listview = (ListView) findViewById(R.id.listview_music);
 
+        // item 중간에 선을 넣기 위한 함수
         listview.setDivider(new ColorDrawable(0xffffffff));
         listview.setDividerHeight(2);
+
         listview.setAdapter(adapter);
 
-
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String item = adapterView.getItemAtPosition(i).toString();
-
-            }
-        });
-
         final Intent music_info = new Intent(this, MusicInfoActivity.class);
+        // listview item 클릭시 이벤트 발생
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View v,int position, long id){
                 PlayingMusicInfo pl = (PlayingMusicInfo) parent.getItemAtPosition(position);
+                // item 클릭시 클릭한 노래 재생
                 if(!pl.getTitle().equals(musicService.getCurrMusicInfo().getTitle())) {
                     musicService.setCurrMusic(pl);
                     musicService.play();
                 }
+
+                // 노래 재생화면으로 넘어감
                 music_info.putExtra("title", musicService.getCurrMusicInfo().getTitle());
-                music_info.putExtra("artist", musicService.getCurrMusicInfo().getArtist());
+                music_info.putExtra("artist", musicService.getCurrMusicInfo().getAlbum());
                 music_info.putExtra("isPlaying", musicService.isPlaying());
                 music_info.putExtra("currentTime", musicService.getCurrentPosition());
                 startActivity(music_info);
@@ -79,24 +77,24 @@ public class MusicLibraryActivity extends AppCompatActivity {
         });
     }
 
+    // Service 정보를 가져올 때 연결을 해주는 변수
     private ServiceConnection conn = new ServiceConnection() {
+        // Service 연결
         public void onServiceConnected(ComponentName name,
                                        IBinder service) {
-            // 서비스와 연결되었을 때 호출되는 메서드
-            // 서비스 객체를 전역변수로 저장
             MusicBinder mb = (MusicBinder) service;
-            musicService = mb.getService(); // 서비스가 제공하는 메소드 호출하여
+            musicService = mb.getService();
             musicService.setMusicList(list);
-            // 서비스쪽 객체를 전달받을수 있슴
             isMusicService = true;
         }
+        // Service 해
         public void onServiceDisconnected(ComponentName name) {
-            // 서비스와 연결이 끊겼을 때 호출되는 메서드
             musicService = null;
             isMusicService = false;
         }
     };
 
+    // 백그라운드에서 재생되고 있는 MusicPlayerService 정보를 가져옴
     @Override
     protected void onStart(){
         super.onStart();
@@ -109,28 +107,31 @@ public class MusicLibraryActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        Log.i("println", "MusicLibrary : into onDestory");
 
+        // Service 연결 해제
         if(isMusicService)
             unbindService(conn);
     }
 
+    // External Stroage에 있는 노래들을 가져와 list에 정보들을 저장
     public ArrayList<PlayingMusicInfo> getExternalMusicList(){
         ArrayList<PlayingMusicInfo> music_list = new ArrayList();
         if(Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             if (PermissionHandler.isPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, "External Storage", 1000)) {
 
+                // External Stroage에 있는 music 폴더에 접근
                 String rootSD = Environment.getExternalStorageDirectory().toString();
                 File file = new File(rootSD + "/Music");
 
                 try {
-                    // File file = new File(path);
+                    // 현재 폴더에 있는 파일들을 가져옴
                     File list[] = file.listFiles();
                     for (int i = 0; i < list.length; i++) {
                         Uri uri = Uri.parse(list[i].getPath());
                         MediaMetadataRetriever mmdata = new MediaMetadataRetriever();
                         mmdata.setDataSource(getApplication(), uri);
 
+                        // 각 노래들의 정보들을 list에 저장
                         String title = mmdata.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                         String album = mmdata.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
                         String artist = mmdata.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
@@ -144,23 +145,4 @@ public class MusicLibraryActivity extends AppCompatActivity {
         }
         return music_list;
     }
-
-    /*
-    public ArrayAdapter<String> getArrayAdapter(ArrayList list){
-        final ArrayAdapter<String> adapter=new ArrayAdapter<String> (
-                this, android.R.layout.simple_list_item_1, list){
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view =super.getView(position, convertView, parent);
-
-                TextView textView=(TextView) view.findViewById(android.R.id.text1);
-                textView.setTextColor(Color.WHITE);
-                textView.setTypeface(textView.getTypeface(), Typeface.BOLD);
-
-                return view;
-            }
-        };
-        return adapter;
-    }
-     */
 }

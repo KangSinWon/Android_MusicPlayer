@@ -36,6 +36,7 @@ public class MusicInfoActivity extends AppCompatActivity {
     TextView tv_curr_time;
     TextView tv_total_time;
 
+    // MusicPlayerService에서 변경된 정보를 알려줄 때 실행되는 함수
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -49,7 +50,6 @@ public class MusicInfoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_info);
-        Log.i("println", "MusicInfo : into onCreate");
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
@@ -77,28 +77,25 @@ public class MusicInfoActivity extends AppCompatActivity {
         }
     }
 
-
+    // Service 정보를 가져올 때 연결을 해주는 변수
     private ServiceConnection conn = new ServiceConnection() {
         public void onServiceConnected(ComponentName name,
                                        IBinder service) {
             // 서비스와 연결되었을 때 호출되는 메서드
-            // 서비스 객체를 전역변수로 저장
             MusicBinder mb = (MusicBinder) service;
-            musicService = mb.getService(); // 서비스가 제공하는 메소드 호출하여
+            musicService = mb.getService();
             MusicPlayerSeekBar();
 
-            // 서비스쪽 객체를 전달받을수 있슴
             isMusicService = true;
         }
         public void onServiceDisconnected(ComponentName name) {
-            // 서비스와 연결이 끊겼을 때 호출되는 메서드
             isMusicService = false;
         }
     };
 
+    // 백그라운드에서 재생되고 있는 MusicPlayerService 정보를 가져옴
     @Override
     protected void onStart(){
-        Log.i("println", "MusicInfo : into onStart");
         super.onStart();
         if (musicServiceIntent == null) {
             musicServiceIntent = new Intent(this, MusicPlayerService.class);
@@ -110,6 +107,7 @@ public class MusicInfoActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
+        // MusicPlayerService에서 바뀐 정보를 알려줄 때 정보를 받을 수 있도록 하는 함수
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, new IntentFilter("setInfo"));
     }
 
@@ -117,8 +115,10 @@ public class MusicInfoActivity extends AppCompatActivity {
     @Override
     protected void onPause(){
         super.onPause();
+        // 연결 해제
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 
+        // 연결 해제
         unbindService(conn);
         isMusicService = false;
     }
@@ -131,12 +131,14 @@ public class MusicInfoActivity extends AppCompatActivity {
             unbindService(conn);
     }
 
+    // 노래가 재생되는 동안 진행률을 보여주는 seekbar
     public void MusicPlayerSeekBar(){
         seekBar.setMax(musicService.getMusicTime());
         tv_total_time.setText(convertMillisSeconds(musicService.getMusicTime()));
         seekBar.setProgress(musicService.getCurrentPosition());
         tv_curr_time.setText(convertMillisSeconds(musicService.getCurrentPosition()));
 
+        // 노래가 재생되면 Thread로 1초마다 진행률이 증가하도록 함
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -151,6 +153,7 @@ public class MusicInfoActivity extends AppCompatActivity {
         }).start();
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            // seekbar를 임의로 움직였을 때 해당 시간으로 노래를 이동시켜 재생
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if(b) {
@@ -169,15 +172,15 @@ public class MusicInfoActivity extends AppCompatActivity {
         });
     }
 
+    // 밀리세컨드를 분, 초로 변경해주는 함수
     public String convertMillisSeconds(int millis){
         String time = String.format("%02d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(millis),
-                TimeUnit.MILLISECONDS.toSeconds(millis) -
-                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
-        );
+                TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
         return time;
     }
 
+    // 현재 노래 정보를 화면에 보여주는 함수 : 파라미터 PlayingMusicInfo
     public void setInfo(PlayingMusicInfo pl){
         if (pl.getTitle() == null || pl.getTitle().equals(""))
             tv_title.setText("?");
@@ -190,6 +193,7 @@ public class MusicInfoActivity extends AppCompatActivity {
             tv_artist.setText(pl.getArtist());
     }
 
+    // 현재 노래 정보를 화면에 보여주는 함수 : 파라미터 String, String
     public void setInfo(String title, String artist){
         if(title == null || title.equals(""))
             tv_title.setText("?");
@@ -202,6 +206,7 @@ public class MusicInfoActivity extends AppCompatActivity {
             tv_artist.setText(artist);
     }
 
+    // play, pause 버튼 함수
     public void play_button(View view) {
         ImageButton ib = (ImageButton) view;
         if(musicService.isPlaying()){
@@ -210,14 +215,17 @@ public class MusicInfoActivity extends AppCompatActivity {
         } else {
             ib.setImageResource(R.drawable.pause);
             musicService.continue_play();
+            MusicPlayerSeekBar();
         }
     }
 
+    // 이전 곡 재생 함수
     public void previous_button(View view) {
         musicService.previous();
         setInfo(musicService.getCurrMusicInfo());
     }
 
+    // 다음 곡 재생 함수
     public void next_button(View view) {
         musicService.next();
         setInfo(musicService.getCurrMusicInfo());
