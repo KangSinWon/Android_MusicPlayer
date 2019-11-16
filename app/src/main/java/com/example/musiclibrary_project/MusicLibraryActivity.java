@@ -35,6 +35,9 @@ public class MusicLibraryActivity extends AppCompatActivity {
     private MusicPlayerService musicService;
     private boolean isMusicService = false;
 
+    private ListView listview;
+    private MusicListViewAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,11 +45,13 @@ public class MusicLibraryActivity extends AppCompatActivity {
 
         list = getExternalMusicList();
 
-        final ArrayAdapter<String> adapter = getArrayAdapter(list);
-        ListView listview = (ListView) findViewById(R.id.listview_music);
+        adapter = new MusicListViewAdapter(list);
+        listview = (ListView) findViewById(R.id.listview_music);
+
         listview.setDivider(new ColorDrawable(0xffffffff));
-        listview.setDividerHeight(3);
+        listview.setDividerHeight(2);
         listview.setAdapter(adapter);
+
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -140,6 +145,7 @@ public class MusicLibraryActivity extends AppCompatActivity {
         return music_list;
     }
 
+    /*
     public ArrayAdapter<String> getArrayAdapter(ArrayList list){
         final ArrayAdapter<String> adapter=new ArrayAdapter<String> (
                 this, android.R.layout.simple_list_item_1, list){
@@ -150,9 +156,11 @@ public class MusicLibraryActivity extends AppCompatActivity {
                 TextView textView=(TextView) view.findViewById(android.R.id.text1);
                 textView.setTextColor(Color.WHITE);
                 textView.setTypeface(textView.getTypeface(), Typeface.BOLD);
+
                 return view;
             }
         };
         return adapter;
     }
+     */
 }
