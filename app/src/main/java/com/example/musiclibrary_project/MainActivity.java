@@ -22,8 +22,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        // Start 버튼을 누르면 music list 화면으로 넘어감
         final Intent music_library = new Intent(this, MusicLibraryActivity.class);
         Button button_start = findViewById(R.id.button_start);
         button_start.setOnClickListener(new Button.OnClickListener(){
@@ -35,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Service 정보를 가져올 때 연결을 해주는 변수
-    private ServiceConnection conn = new ServiceConnection() {
+    private ServiceConnection serviceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName name,
                                        IBinder service) {
             MusicBinder mb = (MusicBinder) service;
@@ -54,14 +52,13 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         if (musicServiceIntent == null) {
             musicServiceIntent = new Intent(this, MusicPlayerService.class);
-            bindService(musicServiceIntent, conn, Context.BIND_AUTO_CREATE);
-            // TODO : 'unbindService' method 구현
+            bindService(musicServiceIntent, serviceConn, Context.BIND_AUTO_CREATE);
         }
     }
 
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        unbindService(conn);
+        unbindService(serviceConn);
     }
 }

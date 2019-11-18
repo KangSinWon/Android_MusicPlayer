@@ -78,7 +78,7 @@ public class MusicLibraryActivity extends AppCompatActivity {
     }
 
     // Service 정보를 가져올 때 연결을 해주는 변수
-    private ServiceConnection conn = new ServiceConnection() {
+    private ServiceConnection serviceConn = new ServiceConnection() {
         // Service 연결
         public void onServiceConnected(ComponentName name,
                                        IBinder service) {
@@ -86,6 +86,7 @@ public class MusicLibraryActivity extends AppCompatActivity {
             musicService = mb.getService();
             musicService.setMusicList(list);
             isMusicService = true;
+
         }
         // Service 해
         public void onServiceDisconnected(ComponentName name) {
@@ -100,7 +101,7 @@ public class MusicLibraryActivity extends AppCompatActivity {
         super.onStart();
         if (musicServiceIntent == null) {
             musicServiceIntent = new Intent(this, MusicPlayerService.class);
-            bindService(musicServiceIntent, conn, Context.BIND_AUTO_CREATE);
+            bindService(musicServiceIntent, serviceConn, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -110,7 +111,7 @@ public class MusicLibraryActivity extends AppCompatActivity {
 
         // Service 연결 해제
         if(isMusicService)
-            unbindService(conn);
+            unbindService(serviceConn);
     }
 
     // External Stroage에 있는 노래들을 가져와 list에 정보들을 저장

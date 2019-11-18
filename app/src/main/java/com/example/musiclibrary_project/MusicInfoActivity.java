@@ -78,7 +78,7 @@ public class MusicInfoActivity extends AppCompatActivity {
     }
 
     // Service 정보를 가져올 때 연결을 해주는 변수
-    private ServiceConnection conn = new ServiceConnection() {
+    private ServiceConnection serviceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName name,
                                        IBinder service) {
             // 서비스와 연결되었을 때 호출되는 메서드
@@ -99,7 +99,7 @@ public class MusicInfoActivity extends AppCompatActivity {
         super.onStart();
         if (musicServiceIntent == null) {
             musicServiceIntent = new Intent(this, MusicPlayerService.class);
-            bindService(musicServiceIntent, conn, Context.BIND_AUTO_CREATE);
+            bindService(musicServiceIntent, serviceConn, Context.BIND_AUTO_CREATE);
             // TODO : 'unbindService' method 구현
         }
     }
@@ -119,7 +119,7 @@ public class MusicInfoActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 
         // 연결 해제
-        unbindService(conn);
+        unbindService(serviceConn);
         isMusicService = false;
     }
 
@@ -128,7 +128,7 @@ public class MusicInfoActivity extends AppCompatActivity {
         super.onDestroy();
 
         if(isMusicService)
-            unbindService(conn);
+            unbindService(serviceConn);
     }
 
     // 노래가 재생되는 동안 진행률을 보여주는 seekbar
@@ -221,13 +221,23 @@ public class MusicInfoActivity extends AppCompatActivity {
 
     // 이전 곡 재생 함수
     public void previous_button(View view) {
+        if(!musicService.isPlaying()) {
+            ImageButton ib = (ImageButton) findViewById(R.id.button_play);
+            ib.setImageResource(R.drawable.pause);
+        }
         musicService.previous();
         setInfo(musicService.getCurrMusicInfo());
+        MusicPlayerSeekBar();
     }
 
     // 다음 곡 재생 함수
     public void next_button(View view) {
+        if(!musicService.isPlaying()) {
+            ImageButton ib = (ImageButton) findViewById(R.id.button_play);
+            ib.setImageResource(R.drawable.pause);
+        }
         musicService.next();
         setInfo(musicService.getCurrMusicInfo());
+        MusicPlayerSeekBar();
     }
 }
